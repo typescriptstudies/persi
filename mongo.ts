@@ -8,7 +8,7 @@ console.log(`mongo uri ${MONGODB_URI}`)
 
 let db:any = null
 
-let collections:{[id:string]:any}={x:3}
+let collections:{[id:string]:any}={warning:"no mongodb connection"}
 
 function getCollectionsHash(){return collections}
 module.exports.getCollectionsHash=getCollectionsHash
