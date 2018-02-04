@@ -4,7 +4,7 @@ module.exports.getCollections = getCollections;
 let MONGODB_URI = process.env.MONGODB_URI;
 console.log(`mongo uri ${MONGODB_URI}`);
 let db = null;
-let collections = { x: 3 };
+let collections = { warning: "no mongodb connection" };
 function getCollectionsHash() { return collections; }
 module.exports.getCollectionsHash = getCollectionsHash;
 try {
