@@ -37,6 +37,8 @@ function ajaxRequest(payload:any,callback:any){
 
 ///////////////////////////////////////////////////////////
 
+let config:Div
+let tabpane:Tabpane
 let collectionsCombo=new ComboBox("collectionscombo")
 let mongoColl=new MongoColl()
 let collNameInput:TextInputWindow
@@ -48,6 +50,14 @@ function createDocTextArea(){
     docTextAreaDiv.x.a([docTextArea])
 }
 createDocTextArea()
+let updateTextAreaDiv=new Div()
+let updateTextArea:TextArea
+function createUpdateTextArea(){
+    updateTextArea=new TextArea("updatetext")
+    updateTextArea.setWidthRem(800).setHeightRem(100)
+    updateTextAreaDiv.x.a([updateTextArea])
+}
+createUpdateTextArea()
 
 function ajax(){
     ajaxRequest({action:"ajax"},(json:any)=>{clog(json)})
@@ -117,10 +127,29 @@ function dropCollection(){
     .build()
 }
 
-function insertOne(){
+function getDocTextAreaJson(){
     try{
         let text=docTextArea.getText()
         let json=JSON.parse(text)
+        return json
+    }catch(err){
+        return {}
+    }    
+}
+
+function getUpdateTextAreaJson(){
+    try{
+        let text=updateTextArea.getText()
+        let json=JSON.parse(text)
+        return json
+    }catch(err){
+        return {}
+    }    
+}
+
+function insertOne(){
+    try{
+        let json=getDocTextAreaJson()
         ajaxRequest({action:"insertone",collname:collectionsCombo.selectedKey,doc:json,options:{}},(result:any)=>{
             loadCollection()
         })
@@ -129,31 +158,91 @@ function insertOne(){
     }
 }
 
+function setDocTextArea(text:string){
+    createDocTextArea()
+    docTextArea.setText(text)
+}
+
+function setUpdateTextArea(text:string){
+    createUpdateTextArea()
+    updateTextArea.setText(text)
+}
+
 function mongoCollLoadCallback(doc:any){    
     let jsontext=JSON.stringify(doc,null,2)
-    createDocTextArea()
-    docTextArea.setText(jsontext)
+    setDocTextArea(jsontext)        
+    tabpane.contentdiv.e.scrollTop=0
+}
+
+function deleteSome(collname:any,filter:any,options:any){
+    try{
+        ajaxRequest({action:"deletesome",collname:collname,filter:filter,options:options},(result:any)=>{
+            loadCollection()
+        })
+    }catch(err){
+        console.log(err)
+    }
+}
+
+function deleteOne(){
+    let collname=collectionsCombo.selectedKey
+    let filter=getDocTextAreaJson()    
+    deleteSome(collname,filter,{kind:"one"})
+}
+
+function deleteMany(){
+    let collname=collectionsCombo.selectedKey
+    let filter=getDocTextAreaJson()
+    deleteSome(collname,filter,{kind:"many"})
+}
+
+function updateSome(collname:any,filter:any,update:any,options:any){
+    try{
+        ajaxRequest({action:"updatesome",collname:collname,filter:filter,update:update,options:options},(result:any)=>{
+            loadCollection()
+        })
+    }catch(err){
+        console.log(err)
+    }
+}
+
+function updateOne(){
+    let collname=collectionsCombo.selectedKey
+    let filter=getDocTextAreaJson()
+    let update=getUpdateTextAreaJson()    
+    updateSome(collname,filter,update,{kind:"one"})
+}
+
+function updateMany(){
+    let collname=collectionsCombo.selectedKey
+    let filter=getDocTextAreaJson()
+    let update=getUpdateTextAreaJson()    
+    updateSome(collname,filter,update,{kind:"many"})
 }
 
 function buildApp(){
     mongoColl.setLoadCallback(mongoCollLoadCallback)
 
-    let config=new Div().a([
-        new Button("Test ajax").onClick(ajax),
-        new Button("Get collections").onClick(getCollections),
-        new Button("Refresh collections").onClick(refreshCollections),
+    config=new Div().a([        
+        new Button("GetColls").onClick(getCollections),
+        new Button("RefreshColls").onClick(refreshCollections),
         collectionsCombo.build(),
-        new Button("Load collection").onClick(loadCollection),
-        new Button("Create collection").onClick(createCollection),
-        new Button("Drop collection").onClick(dropCollection),
-        new Button("Insert one").onClick(insertOne),
+        new Button("LoadColl").onClick(loadCollection),
+        new Button("CreateColl").onClick(createCollection),
+        new Button("DropColl").onClick(dropCollection),
+        new Button("InsertDoc").onClick(insertOne),
+        new Button("DeleteOne").onClick(deleteOne),
+        new Button("DeleteMany").onClick(deleteMany),
+        new Button("UpdateOne").onClick(updateOne),
+        new Button("UpdateMany").onClick(updateMany),
         docTextAreaDiv,
+        updateTextAreaDiv,
         mongoColl.build()
     ])
 
     let log=new Logpane()
 
-    let tabpane=(<Tabpane>new Tabpane("maintabpane").
+    tabpane=(<Tabpane>new Tabpane("maintabpane").
         setTabs([
             new Tab("config","Config",config),
             new Tab("log","Log",log)            

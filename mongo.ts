@@ -223,9 +223,96 @@ function insertOne(collname:string,doc:any,options:any,callback:any){
     }
 }
 
+function deleteSome(collname:string,filter:any,options:any,callback:any){
+    if(db!=null){
+        getCollection(collname,(result:any)=>{
+            if(!result.ok){
+                callback(result)
+            }else{
+                if(result.error){                    
+                    callback({
+                        ok:false,
+                        status:"no collection"
+                    })
+                }else{
+                    let collection=result.collection
+                    if(options.kind=="many"){
+                        collection.deleteMany(filter,options,(error:any,result:any)=>{
+                            callback({
+                                ok:true,
+                                error:error,
+                                result:result
+                            })
+                        })
+                    }
+                    else{
+                        collection.deleteOne(filter,options,(error:any,result:any)=>{
+                            callback({
+                                ok:true,
+                                error:error,
+                                result:result
+                            })
+                        })
+                    }
+                }
+            }
+        })
+    }else{
+        callback({
+            ok:false,
+            status:"no db",
+        })  
+    }
+}
+
+function updateSome(collname:string,filter:any,update:any,options:any,callback:any){
+    if(db!=null){
+        getCollection(collname,(result:any)=>{
+            if(!result.ok){
+                callback(result)
+            }else{
+                if(result.error){                    
+                    callback({
+                        ok:false,
+                        status:"no collection"
+                    })
+                }else{
+                    let collection=result.collection
+                    if(options.kind=="many"){
+                        console.log("UPDATE MANY",filter,update,options)
+                        collection.updateMany(filter,update,options,(error:any,result:any)=>{
+                            callback({
+                                ok:true,
+                                error:error,
+                                result:result
+                            })
+                        })
+                    }
+                    else{
+                        collection.updateOne(filter,update,options,(error:any,result:any)=>{
+                            callback({
+                                ok:true,
+                                error:error,
+                                result:result
+                            })
+                        })
+                    }
+                }
+            }
+        })
+    }else{
+        callback({
+            ok:false,
+            status:"no db",
+        })  
+    }
+}
+
 module.exports.getCollectionsHash=getCollectionsHash
 module.exports.getCollections=getCollections
 module.exports.getCollectionAsList=getCollectionAsList
 module.exports.createCollection=createCollection
 module.exports.dropCollection=dropCollection
 module.exports.insertOne=insertOne
+module.exports.deleteSome=deleteSome
+module.exports.updateSome=updateSome

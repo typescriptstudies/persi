@@ -69,4 +69,23 @@ function handleApiInner(req:any,res:any){
             send(res,result)
         })
     }
+    if(action=="deletesome"){
+        let collname=json.collname
+        let filter=json.filter
+        let options=json.options
+        console.log("delete some",collname,filter,options)
+        mongo.deleteSome(collname,filter,options,(result:any)=>{
+            send(res,result)
+        })
+    }
+    if(action=="updatesome"){
+        let collname=json.collname
+        let filter=json.filter
+        let update=json.update
+        let options=json.options
+        console.log("update some",collname,filter,update,options)
+        mongo.updateSome(collname,filter,update,options,(result:any)=>{
+            send(res,result)
+        })
+    }
 }
