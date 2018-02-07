@@ -67,6 +67,8 @@
     "dom/tabpane.ts",
     "dom/logpane.ts",
     "dom/project.ts",
+    "dom/mongodoc.ts",
+    "dom/mongocoll.ts",
     "app.ts"
   ]
 }

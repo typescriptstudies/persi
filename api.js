@@ -4,7 +4,9 @@ module.exports.handleApi = handleApi;
 setTimeout((e) => console.log(mongo.getCollectionsHash()), 10000);
 function send(res, json) {
     res.setHeader("Content-Type", "application/json");
-    res.send(JSON.stringify(json));
+    let jsontext = JSON.stringify(json);
+    console.log("sending", jsontext.length);
+    res.send(jsontext);
 }
 function handleApi(req, res) {
     let json = req.body;
@@ -17,9 +19,16 @@ function handleApi(req, res) {
         send(res, { ok: true, status: "ajax ok" });
     }
     if (action == "getcollections") {
+        console.log("getcollections");
         send(res, { ok: true, status: "collections ok", collections: mongo.getCollectionsHash() });
     }
     if (action == "refreshcollections") {
         send(res, { ok: true, status: "refresh collections ok", collections: mongo.getCollections() });
+    }
+    if (action == "getcollectionaslist") {
+        let collname = json.collname;
+        let query = json.query;
+        console.log("get collection as list", collname, query);
+        mongo.getCollectionAsList(collname, query, (result) => send(res, result));
     }
 }
