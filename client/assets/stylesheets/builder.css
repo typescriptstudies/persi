@@ -223,6 +223,7 @@
     border-width:1rem;
     border-radius:5rem;
     padding:5rem;
+    font-family: monospace;
 }
 
 .mongocollmaindiv{
@@ -231,4 +232,8 @@
     border-width:1rem;
     border-radius:5rem;
     padding:5rem;
+}
+
+.dockey{
+    font-weight: bold;
 }
