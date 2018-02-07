@@ -746,6 +746,24 @@ class TextInput extends DomElement {
         return this.w(width);
     }
 }
+class TextArea extends DomElement {
+    constructor(id) {
+        super("textarea");
+        this.id = id;
+        this.fs(FONT_SIZE);
+    }
+    getText() {
+        return this.getValue();
+    }
+    setText(content) {
+        this.h(content);
+        return this;
+    }
+    clear() {
+        this.setText("");
+        return this;
+    }
+}
 class Slider extends DomElement {
     constructor(id = null) {
         super("input");
@@ -803,10 +821,12 @@ class ComboBox extends DomElement {
     clear() {
         this.options = [];
         this.selectedIndex = -1;
+        this.store;
         return this;
     }
     addOptions(os) {
         os.map(o => this.options.push(o));
+        this.store;
         return this;
     }
     selectByIndex(index) {
@@ -823,6 +843,7 @@ class ComboBox extends DomElement {
             this.options[i].ra("selected");
             if (i == this.selectedIndex) {
                 this.options[i].sa("selected", "true");
+                this.store;
             }
         }
         return this;
@@ -1405,17 +1426,28 @@ class MongoDoc extends DomElement {
         this.doc = doc;
         return this;
     }
+    setLoadCallback(loadcallback) {
+        this.loadcallback = loadcallback;
+        return this;
+    }
+    loadButtonClicked(e) {
+        if (this.loadcallback != undefined)
+            this.loadcallback(this.doc);
+    }
     build() {
         let content = "";
         for (let key in this.doc) {
             let value = this.doc[key];
             content += `<span class="dockey">${key}</span>`;
-            if (value.length < 80)
-                content += ` = ${value}<hr>`;
-            else
+            if ((typeof value == "string") && (value.length > 80))
                 content += ` : <hr><pre>${value}</pre><hr>`;
+            else
+                content += ` = ${value}<hr>`;
         }
-        this.x.ac("mongodocmaindiv").h(content);
+        this.x.ac("mongodocmaindiv").a([
+            new Button("Load").onClick(this.loadButtonClicked.bind(this)),
+            new Div().h(content)
+        ]);
         return this;
     }
 }
@@ -1426,8 +1458,12 @@ class MongoColl extends DomElement {
         this.
             fs(FONT_SIZE);
     }
+    setLoadCallback(loadcallback) {
+        this.loadcallback = loadcallback;
+        return this;
+    }
     setDocs(docs) {
-        this.mdocs = docs.map(doc => new MongoDoc().setDoc(doc).build());
+        this.mdocs = docs.map(doc => new MongoDoc().setLoadCallback(this.loadcallback).setDoc(doc).build());
         return this;
     }
     build() {
@@ -1465,6 +1501,15 @@ function ajaxRequest(payload, callback) {
 ///////////////////////////////////////////////////////////
 let collectionsCombo = new ComboBox("collectionscombo");
 let mongoColl = new MongoColl();
+let collNameInput;
+let docTextAreaDiv = new Div();
+let docTextArea;
+function createDocTextArea() {
+    docTextArea = new TextArea("doctext");
+    docTextArea.setWidthRem(800).setHeightRem(200);
+    docTextAreaDiv.x.a([docTextArea]);
+}
+createDocTextArea();
 function ajax() {
     ajaxRequest({ action: "ajax" }, (json) => { clog(json); });
 }
@@ -1481,7 +1526,11 @@ function getCollections() {
     });
 }
 function refreshCollections() {
-    ajaxRequest({ action: "refreshcollections" }, (json) => { clog(json); });
+    collectionsCombo.clear().build();
+    ajaxRequest({ action: "refreshcollections" }, (json) => {
+        clog(json);
+        setTimeout(getCollections, 10000);
+    });
 }
 function loadCollection() {
     if (collectionsCombo.options.length <= 0)
@@ -1496,13 +1545,59 @@ function loadCollection() {
         }
     });
 }
+function createCollectionOkCallback() {
+    let collname = collNameInput.textinput.getText();
+    ajaxRequest({ action: "createcollection", collname: collname }, (json) => {
+        clog(json);
+        refreshCollections();
+    });
+}
+function createCollection() {
+    collNameInput = new TextInputWindow("collnameinput");
+    collNameInput.setOkCallback(createCollectionOkCallback)
+        .build();
+}
+function dropCollectionOkCallback() {
+    let collname = collNameInput.textinput.getText();
+    ajaxRequest({ action: "dropcollection", collname: collname }, (json) => {
+        clog(json);
+        refreshCollections();
+    });
+}
+function dropCollection() {
+    collNameInput = new TextInputWindow("collnameinput");
+    collNameInput.setOkCallback(dropCollectionOkCallback)
+        .build();
+}
+function insertOne() {
+    try {
+        let text = docTextArea.getText();
+        let json = JSON.parse(text);
+        ajaxRequest({ action: "insertone", collname: collectionsCombo.selectedKey, doc: json, options: {} }, (result) => {
+            loadCollection();
+        });
+    }
+    catch (err) {
+        console.log(err);
+    }
+}
+function mongoCollLoadCallback(doc) {
+    let jsontext = JSON.stringify(doc, null, 2);
+    createDocTextArea();
+    docTextArea.setText(jsontext);
+}
 function buildApp() {
+    mongoColl.setLoadCallback(mongoCollLoadCallback);
     let config = new Div().a([
         new Button("Test ajax").onClick(ajax),
         new Button("Get collections").onClick(getCollections),
         new Button("Refresh collections").onClick(refreshCollections),
         collectionsCombo.build(),
         new Button("Load collection").onClick(loadCollection),
+        new Button("Create collection").onClick(createCollection),
+        new Button("Drop collection").onClick(dropCollection),
+        new Button("Insert one").onClick(insertOne),
+        docTextAreaDiv,
         mongoColl.build()
     ]);
     let log = new Logpane();

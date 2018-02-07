@@ -143,6 +143,94 @@ function getCollectionAsList(collname, query, callback) {
         });
     }
 }
+function createCollection(collname, callback) {
+    if (db != null) {
+        try {
+            db.createCollection(collname, null, (error, collection) => {
+                callback({
+                    ok: true,
+                    status: "create collection returned",
+                    error: error,
+                    collection: collection
+                });
+            });
+        }
+        catch (err) {
+            callback({
+                ok: false,
+                status: "create collection failed",
+            });
+        }
+    }
+    else {
+        callback({
+            ok: false,
+            status: "no db",
+        });
+    }
+}
+function dropCollection(collname, callback) {
+    if (db != null) {
+        try {
+            db.dropCollection(collname, {}, (error, result) => {
+                callback({
+                    ok: true,
+                    status: "drop collection returned",
+                    error: error,
+                    result: result
+                });
+            });
+        }
+        catch (err) {
+            callback({
+                ok: false,
+                status: "drop collection failed",
+            });
+        }
+    }
+    else {
+        callback({
+            ok: false,
+            status: "no db",
+        });
+    }
+}
+function insertOne(collname, doc, options, callback) {
+    if (db != null) {
+        getCollection(collname, (result) => {
+            if (!result.ok) {
+                callback(result);
+            }
+            else {
+                if (result.error) {
+                    callback({
+                        ok: false,
+                        status: "no collection"
+                    });
+                }
+                else {
+                    let collection = result.collection;
+                    collection.insertOne(doc, options, (error, result) => {
+                        callback({
+                            ok: true,
+                            error: error,
+                            result: result
+                        });
+                    });
+                }
+            }
+        });
+    }
+    else {
+        callback({
+            ok: false,
+            status: "no db",
+        });
+    }
+}
 module.exports.getCollectionsHash = getCollectionsHash;
 module.exports.getCollections = getCollections;
 module.exports.getCollectionAsList = getCollectionAsList;
+module.exports.createCollection = createCollection;
+module.exports.dropCollection = dropCollection;
+module.exports.insertOne = insertOne;

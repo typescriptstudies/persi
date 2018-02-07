@@ -9,6 +9,17 @@ function send(res, json) {
     res.send(jsontext);
 }
 function handleApi(req, res) {
+    try {
+        handleApiInner(req, res);
+    }
+    catch (err) {
+        send(res, {
+            ok: false,
+            status: "handleApiInner failed"
+        });
+    }
+}
+function handleApiInner(req, res) {
     let json = req.body;
     console.log(json);
     let action = json.action;
@@ -30,5 +41,29 @@ function handleApi(req, res) {
         let query = json.query;
         console.log("get collection as list", collname, query);
         mongo.getCollectionAsList(collname, query, (result) => send(res, result));
+    }
+    if (action == "createcollection") {
+        let collname = json.collname;
+        console.log("create collection", collname);
+        mongo.createCollection(collname, (result) => {
+            result.collection = null;
+            send(res, result);
+        });
+    }
+    if (action == "dropcollection") {
+        let collname = json.collname;
+        console.log("drop collection", collname);
+        mongo.dropCollection(collname, (result) => {
+            send(res, result);
+        });
+    }
+    if (action == "insertone") {
+        let collname = json.collname;
+        let doc = json.doc;
+        let options = json.options;
+        console.log("insert one", collname, doc, options);
+        mongo.insertOne(collname, doc, options, (result) => {
+            send(res, result);
+        });
     }
 }
