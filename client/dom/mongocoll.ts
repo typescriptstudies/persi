@@ -7,8 +7,14 @@ class MongoColl extends DomElement<MongoColl>{
             fs(FONT_SIZE)
     }    
 
+    loadcallback:any
+    setLoadCallback(loadcallback:any):MongoColl{
+        this.loadcallback=loadcallback
+        return this
+    }
+
     setDocs(docs:any[]):MongoColl{        
-        this.mdocs=docs.map(doc=>new MongoDoc().setDoc(doc).build())
+        this.mdocs=docs.map(doc=>new MongoDoc().setLoadCallback(this.loadcallback).setDoc(doc).build())
         return this
     }
 

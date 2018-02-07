@@ -12,17 +12,29 @@ class MongoDoc extends DomElement<MongoDoc>{
         return this
     }
 
+    loadcallback:any
+    setLoadCallback(loadcallback:any):MongoDoc{
+        this.loadcallback=loadcallback
+        return this
+    }
+
+    loadButtonClicked(e:Event){        
+        if(this.loadcallback!=undefined) this.loadcallback(this.doc)
+    }
+
     build():MongoDoc{
         let content=""        
         for(let key in this.doc){
             let value=this.doc[key]
             content+=`<span class="dockey">${key}</span>`
-            if(value.length<80) content+=` = ${value}<hr>`
-            else content+=` : <hr><pre>${value}</pre><hr>`
-        }
-        this.x.ac("mongodocmaindiv").h(
-            content
-        )
+            if((typeof value=="string")&&(value.length>80))
+                content+=` : <hr><pre>${value}</pre><hr>`
+            else content+=` = ${value}<hr>`
+        }                
+        this.x.ac("mongodocmaindiv").a([
+            new Button("Load").onClick(this.loadButtonClicked.bind(this)),
+            new Div().h(content)
+        ])
         return this
     }
 }

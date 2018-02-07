@@ -39,6 +39,15 @@ function ajaxRequest(payload:any,callback:any){
 
 let collectionsCombo=new ComboBox("collectionscombo")
 let mongoColl=new MongoColl()
+let collNameInput:TextInputWindow
+let docTextAreaDiv=new Div()
+let docTextArea:TextArea
+function createDocTextArea(){
+    docTextArea=new TextArea("doctext")
+    docTextArea.setWidthRem(800).setHeightRem(200)
+    docTextAreaDiv.x.a([docTextArea])
+}
+createDocTextArea()
 
 function ajax(){
     ajaxRequest({action:"ajax"},(json:any)=>{clog(json)})
@@ -58,7 +67,11 @@ function getCollections(){
 }
 
 function refreshCollections(){
-    ajaxRequest({action:"refreshcollections"},(json:any)=>{clog(json)})
+    collectionsCombo.clear().build()
+    ajaxRequest({action:"refreshcollections"},(json:any)=>{
+        clog(json)
+        setTimeout(getCollections,10000)
+    })
 }
 
 function loadCollection(){
@@ -74,7 +87,56 @@ function loadCollection(){
     })
 }
 
+function createCollectionOkCallback(){
+    let collname=collNameInput.textinput.getText()
+
+    ajaxRequest({action:"createcollection",collname:collname},(json:any)=>{        
+        clog(json)
+        refreshCollections()
+    })
+}
+
+function createCollection(){
+    collNameInput=new TextInputWindow("collnameinput")
+    collNameInput.setOkCallback(createCollectionOkCallback)
+    .build()
+}
+
+function dropCollectionOkCallback(){
+    let collname=collNameInput.textinput.getText()
+
+    ajaxRequest({action:"dropcollection",collname:collname},(json:any)=>{        
+        clog(json)
+        refreshCollections()
+    })
+}
+
+function dropCollection(){
+    collNameInput=new TextInputWindow("collnameinput")
+    collNameInput.setOkCallback(dropCollectionOkCallback)
+    .build()
+}
+
+function insertOne(){
+    try{
+        let text=docTextArea.getText()
+        let json=JSON.parse(text)
+        ajaxRequest({action:"insertone",collname:collectionsCombo.selectedKey,doc:json,options:{}},(result:any)=>{
+            loadCollection()
+        })
+    }catch(err){
+        console.log(err)
+    }
+}
+
+function mongoCollLoadCallback(doc:any){    
+    let jsontext=JSON.stringify(doc,null,2)
+    createDocTextArea()
+    docTextArea.setText(jsontext)
+}
+
 function buildApp(){
+    mongoColl.setLoadCallback(mongoCollLoadCallback)
 
     let config=new Div().a([
         new Button("Test ajax").onClick(ajax),
@@ -82,6 +144,10 @@ function buildApp(){
         new Button("Refresh collections").onClick(refreshCollections),
         collectionsCombo.build(),
         new Button("Load collection").onClick(loadCollection),
+        new Button("Create collection").onClick(createCollection),
+        new Button("Drop collection").onClick(dropCollection),
+        new Button("Insert one").onClick(insertOne),
+        docTextAreaDiv,
         mongoColl.build()
     ])
 

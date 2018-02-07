@@ -60,6 +60,7 @@
     "dom/button.ts",
     "dom/table.ts",
     "dom/textinput.ts",
+    "dom/textarea.ts",
     "dom/slider.ts",
     "dom/combobox.ts",
     "dom/layers.ts",

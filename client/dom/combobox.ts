@@ -19,11 +19,13 @@ class ComboBox extends DomElement<ComboBox>{
     clear():ComboBox{
         this.options=[]
         this.selectedIndex=-1
+        this.store
         return this
     }
 
     addOptions(os:ComboOption[]):ComboBox{
         os.map(o=>this.options.push(o))
+        this.store
         return this
     }
 
@@ -40,6 +42,7 @@ class ComboBox extends DomElement<ComboBox>{
             this.options[i].ra("selected")
             if(i==this.selectedIndex){
                 this.options[i].sa("selected","true")
+                this.store
             }
         }
         return this
