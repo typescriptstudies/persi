@@ -1406,7 +1406,16 @@ class MongoDoc extends DomElement {
         return this;
     }
     build() {
-        this.x.ac("mongodocmaindiv").h(JSON.stringify(this.doc, null, 2));
+        let content = "";
+        for (let key in this.doc) {
+            let value = this.doc[key];
+            content += `<span class="dockey">${key}</span>`;
+            if (value.length < 80)
+                content += ` = ${value}<hr>`;
+            else
+                content += ` : <hr><pre>${value}</pre><hr>`;
+        }
+        this.x.ac("mongodocmaindiv").h(content);
         return this;
     }
 }
