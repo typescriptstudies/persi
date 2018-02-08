@@ -10,7 +10,13 @@ let collections:{[id:string]:any}={warning:"no mongodb connection"}
 
 function getCollectionsHash(){return collections}
 
+let tryconnect=true
+
 try{
+    if(process.argv.indexOf("nocon")>=0) tryconnect=false
+}catch(err){}
+
+if(tryconnect) try{
     mongodb.connect(MONGODB_URI, function(err:any, conn:any){
         if (err){
             console.log(err)      
@@ -73,7 +79,7 @@ function getCollection(collname:string,callback:any):any{
     }
 }
 
-function find(collname:string,query:any,callback:any){
+function findSome(collname:string,query:any,options:any,callback:any){
     console.log("find",collname,query)
     if(db!=null){
         try{
@@ -81,12 +87,28 @@ function find(collname:string,query:any,callback:any){
                 if(!result.ok) return null
                 if(result.error) return null
                 let collection=result.collection                
-                let cursor=collection.find(query)                                
-                callback({
-                    ok:true,
-                    status:"find returned",
-                    cursor:cursor
-                })
+                if(options.kind!="one"){
+                    let cursor
+                    if(options.getall){
+                        cursor=collection.find(query)                                
+                    }else{
+                        cursor=collection.find(query,options)                                
+                    }                    
+                    callback({
+                        ok:true,
+                        status:"find many returned",
+                        cursor:cursor
+                    })
+                }else{
+                    collection.findOne(query,options,(error:any,result:any)=>{
+                        callback({
+                            ok:true,
+                            status:"find one returned",
+                            error:error,
+                            result:result
+                        })
+                    })
+                }                
             })            
         }catch(err){
             console.log(err)
@@ -105,9 +127,10 @@ function find(collname:string,query:any,callback:any){
     }
 }
 
-function getCollectionAsList(collname:string,query:any,callback:any):any{
+function getCollectionAsList(collname:string,query:any,options:any,callback:any):any{
     if(db!=null){
-        find(collname,query,(result:any)=>{
+        options.kind="many"
+        findSome(collname,query,options,(result:any)=>{
             if(!result.ok){
                 callback(result)                
             }else if(result.cursor==null){
@@ -316,3 +339,4 @@ module.exports.dropCollection=dropCollection
 module.exports.insertOne=insertOne
 module.exports.deleteSome=deleteSome
 module.exports.updateSome=updateSome
+module.exports.findSome=findSome

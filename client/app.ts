@@ -46,7 +46,7 @@ let docTextAreaDiv=new Div()
 let docTextArea:TextArea
 function createDocTextArea(){
     docTextArea=new TextArea("doctext")
-    docTextArea.setWidthRem(800).setHeightRem(200)
+    docTextArea.setWidthRem(2000).setHeightRem(200)
     docTextAreaDiv.x.a([docTextArea])
 }
 createDocTextArea()
@@ -54,7 +54,7 @@ let updateTextAreaDiv=new Div()
 let updateTextArea:TextArea
 function createUpdateTextArea(){
     updateTextArea=new TextArea("updatetext")
-    updateTextArea.setWidthRem(800).setHeightRem(100)
+    updateTextArea.setWidthRem(2000).setHeightRem(100)
     updateTextAreaDiv.x.a([updateTextArea])
 }
 createUpdateTextArea()
@@ -84,10 +84,10 @@ function refreshCollections(){
     })
 }
 
-function loadCollection(){
+function findMany(query:any,options:any){
     if(collectionsCombo.options.length<=0) return    
     let collname=collectionsCombo.selectedKey
-    ajaxRequest({action:"getcollectionaslist",query:{},collname:collname},(json:any)=>{
+    ajaxRequest({action:"getcollectionaslist",collname:collname,query:query,options:options},(json:any)=>{
         if(json.ok){
             let result=json.result
             if(result!=undefined){
@@ -95,6 +95,30 @@ function loadCollection(){
             }
         }
     })
+}
+
+function findOne(query:any,options:any){
+    if(collectionsCombo.options.length<=0) return        
+    let collname=collectionsCombo.selectedKey    
+    ajaxRequest({action:"findone",collname:collname,query:query,options:options},(json:any)=>{
+        if(json.ok){
+            if(!json.error){
+                mongoColl.setDocs([json.result]).build()
+            }
+        }
+    })
+}
+
+function findOneClicked(e:Event){
+    let query=getDocTextAreaJson()    
+    let options=getUpdateTextAreaJson()
+    findOne(query,options)
+}
+
+function loadCollection(){
+    setDocTextArea("{}")
+    setUpdateTextArea("{}")
+    findMany({},{getall:true})
 }
 
 function createCollectionOkCallback(){
@@ -220,21 +244,30 @@ function updateMany(){
     updateSome(collname,filter,update,{kind:"many"})
 }
 
+function findManyClicked(e:Event){
+    let query=getDocTextAreaJson()    
+    findMany(query,{getall:true})
+}
+
 function buildApp(){
     mongoColl.setLoadCallback(mongoCollLoadCallback)
 
     config=new Div().a([        
-        new Button("GetColls").onClick(getCollections),
-        new Button("RefreshColls").onClick(refreshCollections),
-        collectionsCombo.build(),
-        new Button("LoadColl").onClick(loadCollection),
-        new Button("CreateColl").onClick(createCollection),
-        new Button("DropColl").onClick(dropCollection),
-        new Button("InsertDoc").onClick(insertOne),
-        new Button("DeleteOne").onClick(deleteOne),
-        new Button("DeleteMany").onClick(deleteMany),
-        new Button("UpdateOne").onClick(updateOne),
-        new Button("UpdateMany").onClick(updateMany),
+        new Div().ac("controlpaneldiv").a([
+            new Button("GetColls").onClick(getCollections).info,
+            new Button("RefreshColls").onClick(refreshCollections).info,
+            collectionsCombo.build(),
+            new Button("LoadColl").onClick(loadCollection).info,
+            new Button("FindOne").onClick(findOneClicked).info,
+            new Button("FindMany").onClick(findManyClicked).info,
+            new Button("CreateColl").onClick(createCollection).ok,        
+            new Button("InsertDoc").onClick(insertOne).ok,        
+            new Button("UpdateOne").onClick(updateOne).cancel,
+            new Button("UpdateMany").onClick(updateMany).cancel,
+            new Button("DeleteOne").onClick(deleteOne).delete,
+            new Button("DeleteMany").onClick(deleteMany).delete,
+            new Button("DropColl").onClick(dropCollection).delete,
+        ]),
         docTextAreaDiv,
         updateTextAreaDiv,
         mongoColl.build()
