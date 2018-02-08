@@ -5,21 +5,28 @@ console.log(`mongo uri ${MONGODB_URI}`);
 let db = null;
 let collections = { warning: "no mongodb connection" };
 function getCollectionsHash() { return collections; }
+let tryconnect = true;
 try {
-    mongodb.connect(MONGODB_URI, function (err, conn) {
-        if (err) {
-            console.log(err);
-        }
-        else {
-            db = conn;
-            console.log(`connected to MongoDB database < ${db.databaseName} >`);
-            getCollections();
-        }
-    });
+    if (process.argv.indexOf("nocon") >= 0)
+        tryconnect = false;
 }
-catch (err) {
-    console.log(err);
-}
+catch (err) { }
+if (tryconnect)
+    try {
+        mongodb.connect(MONGODB_URI, function (err, conn) {
+            if (err) {
+                console.log(err);
+            }
+            else {
+                db = conn;
+                console.log(`connected to MongoDB database < ${db.databaseName} >`);
+                getCollections();
+            }
+        });
+    }
+    catch (err) {
+        console.log(err);
+    }
 function getCollections() {
     if (db != null) {
         try {
@@ -68,7 +75,7 @@ function getCollection(collname, callback) {
         });
     }
 }
-function find(collname, query, callback) {
+function findSome(collname, query, options, callback) {
     console.log("find", collname, query);
     if (db != null) {
         try {
@@ -78,12 +85,30 @@ function find(collname, query, callback) {
                 if (result.error)
                     return null;
                 let collection = result.collection;
-                let cursor = collection.find(query);
-                callback({
-                    ok: true,
-                    status: "find returned",
-                    cursor: cursor
-                });
+                if (options.kind != "one") {
+                    let cursor;
+                    if (options.getall) {
+                        cursor = collection.find(query);
+                    }
+                    else {
+                        cursor = collection.find(query, options);
+                    }
+                    callback({
+                        ok: true,
+                        status: "find many returned",
+                        cursor: cursor
+                    });
+                }
+                else {
+                    collection.findOne(query, options, (error, result) => {
+                        callback({
+                            ok: true,
+                            status: "find one returned",
+                            error: error,
+                            result: result
+                        });
+                    });
+                }
             });
         }
         catch (err) {
@@ -103,9 +128,10 @@ function find(collname, query, callback) {
         });
     }
 }
-function getCollectionAsList(collname, query, callback) {
+function getCollectionAsList(collname, query, options, callback) {
     if (db != null) {
-        find(collname, query, (result) => {
+        options.kind = "many";
+        findSome(collname, query, options, (result) => {
             if (!result.ok) {
                 callback(result);
             }
@@ -325,3 +351,4 @@ module.exports.dropCollection = dropCollection;
 module.exports.insertOne = insertOne;
 module.exports.deleteSome = deleteSome;
 module.exports.updateSome = updateSome;
+module.exports.findSome = findSome;

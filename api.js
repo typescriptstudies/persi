@@ -39,8 +39,9 @@ function handleApiInner(req, res) {
     if (action == "getcollectionaslist") {
         let collname = json.collname;
         let query = json.query;
-        console.log("get collection as list", collname, query);
-        mongo.getCollectionAsList(collname, query, (result) => send(res, result));
+        let options = json.options;
+        console.log("get collection as list", collname, options, query);
+        mongo.getCollectionAsList(collname, query, options, (result) => send(res, result));
     }
     if (action == "createcollection") {
         let collname = json.collname;
@@ -82,6 +83,16 @@ function handleApiInner(req, res) {
         let options = json.options;
         console.log("update some", collname, filter, update, options);
         mongo.updateSome(collname, filter, update, options, (result) => {
+            send(res, result);
+        });
+    }
+    if (action == "findone") {
+        let collname = json.collname;
+        let query = json.query;
+        let options = json.options;
+        console.log("find one", collname, query, options);
+        options.kind = "one";
+        mongo.findSome(collname, query, options, (result) => {
             send(res, result);
         });
     }
