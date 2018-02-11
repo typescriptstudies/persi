@@ -5,9 +5,10 @@ const _fetch = require('node-fetch');
 let AJAX_URL = `https://quiet-tor-66877.herokuapp.com/ajax`;
 let TOURNEY_SCHEDULE = {
     0: [1, 0],
-    15: [3, 2],
-    30: [2, 0],
-    45: [5, 0]
+    12: [3, 2],
+    24: [2, 0],
+    36: [5, 0],
+    48: [3, 0]
 };
 let SAY_SCHEDULE = {};
 let TOPLIST_SCHEDULE = [7, 22, 37, 52];
