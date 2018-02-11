@@ -15,7 +15,7 @@ let TOURNEY_SCHEDULE:{[id:number]:number[]}={
 
 let SAY_SCHEDULE:{[id:number]:string}={}
 
-let TOPLIST_SCHEDULE=[7,22,37,52]
+let TOPLIST_SCHEDULE=[6,18,30,42,54]
 
 function makeAjaxRequest(payload:any,callback:any){
     _fetch(`${AJAX_URL}`,{
