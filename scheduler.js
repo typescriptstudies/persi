@@ -11,7 +11,7 @@ let TOURNEY_SCHEDULE = {
     48: [3, 0]
 };
 let SAY_SCHEDULE = {};
-let TOPLIST_SCHEDULE = [7, 22, 37, 52];
+let TOPLIST_SCHEDULE = [6, 18, 30, 42, 54];
 function makeAjaxRequest(payload, callback) {
     _fetch(`${AJAX_URL}`, {
         method: "POST",
