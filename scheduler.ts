@@ -33,7 +33,7 @@ for(let key in TOURNEY_SCHEDULE){
     let value=TOURNEY_SCHEDULE[key]
     let time=value[0]
     let inc=value[1]
-    schedule.scheduleJob(`${key} * * * *`, function(){
+    schedule.scheduleJob(`${key} 8-23 * * *`, function(){
         console.log(`creating tourney ${time} ${inc}`)        
         makeAjaxRequest({action:"t",time:time,inc:inc},(content:any)=>{
             console.log(content)
@@ -43,7 +43,7 @@ for(let key in TOURNEY_SCHEDULE){
 
 for(let key in SAY_SCHEDULE){
     let content=SAY_SCHEDULE[key]
-    schedule.scheduleJob(`${key} * * * *`, function(){
+    schedule.scheduleJob(`${key} 8-23 * * *`, function(){
         console.log(`saying bot wisdom ${content}`)        
         makeAjaxRequest({action:"say",content:`Bot wisdom: ${content}`},(content:any)=>{
             console.log(content)
@@ -52,7 +52,7 @@ for(let key in SAY_SCHEDULE){
 }
 
 TOPLIST_SCHEDULE.map(key=>{    
-    schedule.scheduleJob(`${key} * * * *`, function(){
+    schedule.scheduleJob(`${key} 8-23 * * *`, function(){
         console.log(`getting toplist`)        
         makeAjaxRequest({action:"top",n:10},(content:any)=>{
             console.log(content)
