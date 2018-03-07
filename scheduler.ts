@@ -29,7 +29,7 @@ function makeAjaxRequest(payload:any,callback:any){
     then((content:any)=>callback(content))
 }
 
-for(let key in TOURNEY_SCHEDULE){
+/*for(let key in TOURNEY_SCHEDULE){
     let value=TOURNEY_SCHEDULE[key]
     let time=value[0]
     let inc=value[1]
@@ -58,4 +58,4 @@ TOPLIST_SCHEDULE.map(key=>{
             console.log(content)
         })
     })
-})
+})*/
